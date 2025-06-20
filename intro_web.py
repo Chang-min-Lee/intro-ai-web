@@ -2,7 +2,7 @@ import streamlit as st
 from openai import OpenAI
 
 # API 키 입력
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 # 웹페이지 타이틀
 st.title("📄 AI 자기소개서 생성기")
