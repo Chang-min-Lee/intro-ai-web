@@ -1,21 +1,23 @@
 import streamlit as st
-from openai import OpenAI
+import os
+from openai import OpenAI, AuthenticationError
 
-# API 키 입력
-client = OpenAI(api_key="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")
+# 환경변수에서 API 키 가져오기
+api_key = os.getenv("OPENAI_API_KEY")
 
-# 웹페이지 타이틀
-st.title("📄 AI 자기소개서 생성기")
+# 예외처리로 안정성 확보
+try:
+    client = OpenAI(api_key=api_key)
 
-# 입력값 받기
-job = st.text_input("지원 직무를 입력하세요:")
-strength = st.text_input("당신의 강점은?")
-experience = st.text_area("경험을 간단히 설명해 주세요:")
+    st.title("📄 AI 자기소개서 생성기")
 
-# 버튼 누르면 실행
-if st.button("자기소개서 생성"):
-    with st.spinner("AI가 글을 작성 중입니다..."):
-        prompt = f"""
+    job = st.text_input("지원 직무를 입력하세요:")
+    strength = st.text_input("당신의 강점은?")
+    experience = st.text_area("경험을 간단히 설명해 주세요:")
+
+    if st.button("자기소개서 생성"):
+        with st.spinner("AI가 글을 작성 중입니다..."):
+            prompt = f"""
 다음 정보를 바탕으로 자기소개서를 작성해줘.
 문단은 다음 항목 순서로 구성해줘:
 1. 성장 과정
@@ -34,11 +36,15 @@ if st.button("자기소개서 생성"):
 경험: {experience}
 """
 
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            result = response.choices[0].message.content
+            st.success("✅ 자기소개서가 생성되었습니다!")
+            st.markdown(result)
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        result = response.choices[0].message.content
-        st.success("✅ 자기소개서가 생성되었습니다!")
-        st.markdown(result)
+except AuthenticationError:
+    st.error("❌ API 인증에 실패했습니다. 환경변수 또는 API 키를 확인하세요.")
+except Exception as e:
+    st.error(f"⚠️ 알 수 없는 오류가 발생했습니다: {str(e)}")
